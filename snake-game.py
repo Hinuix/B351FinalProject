@@ -159,7 +159,7 @@ class SnakeGame:
                 #print("Moving to the right == danger")
                 right -= 100     #score the direction -10 if it is a direction that will result in death
             else:
-                right += 1      #if the direction does not result in immediate death then reward the move with +1
+                right += 0      #if the direction does not result in immediate death then reward the move with +1
 
             if self.head.x < self.food.x:
                 right += 1      #if the direction moves the snake towards the food, the reward the direction with +1  
@@ -168,8 +168,6 @@ class SnakeGame:
                 if (self.head.x + (i * BLOCK_SIZE), self.head.y) in self.snake[1:]:
                     right -= round(len(self.snake)/4)/i
                 
-
-
             return right
 
         if direction == "LEFT":
@@ -177,7 +175,7 @@ class SnakeGame:
                 #print("Moving to the left == danger")
                 left -= 100      #score the direction -10 if it is a direction that will result in death
             else:
-                left += 1        #if the direction does not result in immediate death then reward the move with +1
+                left += 0       #if the direction does not result in immediate death then reward the move with +1
             
             if self.head.x > self.food.x:
                 left += 1       #if the direction moves the snake towards the food, the reward the direction with +1
@@ -193,7 +191,7 @@ class SnakeGame:
                 #print("Moving up == danger")
                 up -= 100         #score the direction -10 if it is a direction that will result in death
             else:
-                up += 1          #if the direction does not result in immediate death then reward the move with +1
+                up += 0          #if the direction does not result in immediate death then reward the move with +1
 
             if self.head.y > self.food.y:
                 up += 1         #if the direction moves the snake towards the food, the reward the direction with +1
@@ -209,7 +207,7 @@ class SnakeGame:
                 #print("Moving Down == danger")
                 down -= 100       #score the direction -10 if it is a direction that will result in death
             else:
-                down += 1        #if the direction does not result in immediate death then reward the move with +1
+                down += 0       #if the direction does not result in immediate death then reward the move with +1
             
             if self.head.y < self.food.y:
                 down += 1        #if the direction moves the snake towards the food, the reward the direction with +1
@@ -272,13 +270,12 @@ class SnakeGame:
             return moveDirection
 
 
-    def Get_Best_Move(self):
+    def Get_Best_Move1(self): # a get best move mehtod that uses heuristic1
         directions = {"RIGHT" : 0, "LEFT" : 0, "UP" : 0, "DOWN" : 0}    #A dictionary containing key value pairs of the direction and their given weights. The Weights will be updated through the heuristic function.
         moveScore = -1000   # A variable to keep track of the highest weight
         moveDirection = ""  # A variable to keep track of the best move according to the highest weight
         for key in directions:  #loop through the keys in the dictionarry
             score = self.Heuristic1(key) #Heuristic 1 just tries not to hit itself and move towards the food.
-            #score = self.Heuristic2(key) # Heuristic2 tries to not box itself in.
             directions[key] = float(score)     # update the weight of a direction in the dictionary based on the score from the heuristic function
             #print(key + " weight = " + str(directions[key]))
         
@@ -308,11 +305,45 @@ class SnakeGame:
             #print("Changing direction to " + moveDirection)
             self.direction = Direction.DOWN
 
+    def Get_Best_Move2(self): #same get best move method but it used the heuristic2
+        directions = {"RIGHT" : 0, "LEFT" : 0, "UP" : 0, "DOWN" : 0}    #A dictionary containing key value pairs of the direction and their given weights. The Weights will be updated through the heuristic function.
+        moveScore = -1000   # A variable to keep track of the highest weight
+        moveDirection = ""  # A variable to keep track of the best move according to the highest weight
+        for key in directions:  #loop through the keys in the dictionarry
+            score = self.Heuristic2(key) # Heuristic2 tries to not box itself in.
+            directions[key] = float(score)     # update the weight of a direction in the dictionary based on the score from the heuristic function
+            #print(key + " weight = " + str(directions[key]))
+        
+        for key in directions: # loop throught the keys in the dictionary again 
+            if directions[key] > moveScore:     # decide if the current direction has a larger weight than the current highest recorded weight
+                #print(str(directions[key]) + " > movescore = (" + str(moveScore) + ")")
+                moveScore = directions[key]     # if a direction has a larger weight, than update the new score
+                moveDirection = key             # update the direction to the best option found so far
+                #print("Move Directioin = " + moveDirection)
+            if directions[key] == moveScore:
+                moveDirection = self.TieBreaker(key, moveDirection)
 
-    def Play_Heuristic(self): # the method that will play the game hased on the heuristic stratagy 
+        # Find what direction is the best option so far and update self.direction accordingly
+        if moveDirection == "RIGHT":
+            #print("Changing direction to " + moveDirection)
+            self.direction = Direction.RIGHT       
+        
+        if moveDirection == "LEFT":
+            #print("Changing direction to " + moveDirection)
+            self.direction = Direction.LEFT
+
+        if moveDirection == "UP":
+            #print("Changing direction to " + moveDirection)
+            self.direction = Direction.UP
+
+        if moveDirection == "DOWN":
+            #print("Changing direction to " + moveDirection)
+            self.direction = Direction.DOWN
+
+    def Play_Heuristic1(self): # the method that will play the game hased on the heuristic1 stratagy 
         
         # 1. collect data from heuristic
-        self.Get_Best_Move()
+        self.Get_Best_Move1()
 
         # 2. move
         self._move(self.direction) # update the head
@@ -338,6 +369,34 @@ class SnakeGame:
         # 6. return game over and score
         return game_over, self.score
 
+    def Play_Heuristic2(self): # the method that will play the game hased on the heuristic1 stratagy 
+        
+        # 1. collect data from heuristic
+        self.Get_Best_Move2()
+
+        # 2. move
+        self._move(self.direction) # update the head
+        #print("Making a move")
+        self.snake.insert(0, self.head)
+        
+        # 3. check if game over
+        game_over = False
+        if self._is_collision():
+            game_over = True
+            return game_over, self.score
+            
+        # 4. place new food or just move
+        if self.head == self.food:
+            self.score += 1
+            self._place_food()
+        else:
+            self.snake.pop()
+        
+        # 5. update ui and clock
+        self._update_ui()
+        self.clock.tick(SPEED)
+        # 6. return game over and score
+        return game_over, self.score
 
     def DoNotDie(self): # A very simple function that just tries to not make a move that will result in death and tries to move towards the food. 
 
@@ -473,13 +532,17 @@ if __name__ == '__main__':
     game = SnakeGame()
     
     # game loop
+    counter = 0
+   
+
     
     while True:
         #game_over, score = game.play_step()
         #game_over, score = game.play_HardCode()
-        game_over, score = game.Play_Heuristic()
+        game_over, score = game.Play_Heuristic2()
         if game_over == True:
             break
+    
         
     print('Final Score', score)
         
