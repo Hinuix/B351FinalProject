@@ -96,7 +96,7 @@ class SnakeGame:
         return game_over, self.score
     
 
-    def Heuristic(self, direction): # A heuristic function that will score a move based on the direction you tell it to score. 
+    def Heuristic1(self, direction): # A heuristic function that will score a move based on the direction you tell it to score. 
         right = 0
         left = 0
         up = 0
@@ -149,20 +149,147 @@ class SnakeGame:
 
             return down
     
+    def Heuristic2(self, direction): # A heuristic function that will score a move based on the direction you tell it to score. 
+        right = 0
+        left = 0
+        up = 0
+        down = 0
+        if direction == "RIGHT":
+            if((self.head.x + BLOCK_SIZE, self.head.y) in self.snake[1:] or self.head.x + BLOCK_SIZE == self.w): # checks if the snake is going to hit itself or hit a wall
+                #print("Moving to the right == danger")
+                right -= 100     #score the direction -10 if it is a direction that will result in death
+            else:
+                right += 1      #if the direction does not result in immediate death then reward the move with +1
+
+            if self.head.x < self.food.x:
+                right += 1      #if the direction moves the snake towards the food, the reward the direction with +1  
+
+            for i in range(2, round(len(self.snake)/4)): #round(len(self.snake)/2)
+                if (self.head.x + (i * BLOCK_SIZE), self.head.y) in self.snake[1:]:
+                    right -= round(len(self.snake)/4)/i
+                
+
+
+            return right
+
+        if direction == "LEFT":
+            if((self.head.x - BLOCK_SIZE, self.head.y) in self.snake[1:] or self.head.x - BLOCK_SIZE == (-1 * BLOCK_SIZE)): # checks if the snake is going to hit itself or hit a wall
+                #print("Moving to the left == danger")
+                left -= 100      #score the direction -10 if it is a direction that will result in death
+            else:
+                left += 1        #if the direction does not result in immediate death then reward the move with +1
+            
+            if self.head.x > self.food.x:
+                left += 1       #if the direction moves the snake towards the food, the reward the direction with +1
+
+            for i in range(2, round(len(self.snake)/4)):
+                if (self.head.x - (i * BLOCK_SIZE), self.head.y) in self.snake[1:]:
+                    left -= round(len(self.snake)/4)/i
+
+            return left
+
+        if direction == "UP":
+            if((self.head.x, self.head.y - BLOCK_SIZE) in self.snake[1:] or self.head.y - BLOCK_SIZE == (-1 * BLOCK_SIZE)): # checks if the snake is going to hit itself or hit a wall
+                #print("Moving up == danger")
+                up -= 100         #score the direction -10 if it is a direction that will result in death
+            else:
+                up += 1          #if the direction does not result in immediate death then reward the move with +1
+
+            if self.head.y > self.food.y:
+                up += 1         #if the direction moves the snake towards the food, the reward the direction with +1
+
+            for i in range(2, round(len(self.snake)/4)):
+                if (self.head.x , self.head.y - (i * BLOCK_SIZE)) in self.snake[1:]:
+                    up -= round(len(self.snake)/4)/i
+
+            return up
+
+        if direction == "DOWN":
+            if((self.head.x, self.head.y + BLOCK_SIZE) in self.snake[1:] or self.head.y + BLOCK_SIZE == self.h): # checks if the snake is going to hit itself or hit a wall
+                #print("Moving Down == danger")
+                down -= 100       #score the direction -10 if it is a direction that will result in death
+            else:
+                down += 1        #if the direction does not result in immediate death then reward the move with +1
+            
+            if self.head.y < self.food.y:
+                down += 1        #if the direction moves the snake towards the food, the reward the direction with +1
+
+            for i in range(2, round(len(self.snake)/4)):
+                if (self.head.x, self.head.y + (i * BLOCK_SIZE)) in self.snake[1:]:
+                    down -= round(len(self.snake)/4)/i
+
+            return down
+
+    def TieBreaker(self, key, moveDirection):
+        
+        moveDirection2 = key
+        moveDirectioncnt = 0
+        moveDirectioncnt2 = 0
+        while True:
+            if moveDirection == "RIGHT":
+                moveDirectioncnt += 1
+                if (self.head.x + (moveDirectioncnt * BLOCK_SIZE), self.head.y) in self.snake[1:] or self.head.x + (moveDirectioncnt * BLOCK_SIZE) == self.w:
+                    break
+            
+            if moveDirection == "LEFT":
+                moveDirectioncnt += 1
+                if (self.head.x - (moveDirectioncnt * BLOCK_SIZE), self.head.y) in self.snake[1:] or self.head.x - (moveDirectioncnt * BLOCK_SIZE) == (-1 * BLOCK_SIZE):
+                    break
+            
+            if moveDirection == "UP":
+                moveDirectioncnt += 1
+                if (self.head.x, self.head.y + (moveDirectioncnt * BLOCK_SIZE)) in self.snake[1:] or self.head.y + (moveDirectioncnt * BLOCK_SIZE) == self.h:
+                    break
+            
+            if moveDirection == "DOWN":
+                moveDirectioncnt += 1
+                if (self.head.x, self.head.y - (moveDirectioncnt * BLOCK_SIZE)) in self.snake[1:] or self.head.y - (moveDirectioncnt * BLOCK_SIZE) == (-1 *  BLOCK_SIZE):
+                    break
+        
+        while True:
+            if moveDirection2 == "RIGHT":
+                moveDirectioncnt2 += 1
+                if (self.head.x + (moveDirectioncnt2 * BLOCK_SIZE), self.head.y) in self.snake[1:] or self.head.x + (moveDirectioncnt2 * BLOCK_SIZE) == self.w:
+                    break
+            
+            if moveDirection2 == "LEFT":
+                moveDirectioncnt2 += 1
+                if (self.head.x - (moveDirectioncnt2 * BLOCK_SIZE), self.head.y) in self.snake[1:] or self.head.x - (moveDirectioncnt2 * BLOCK_SIZE) == (-1 * BLOCK_SIZE):
+                    break
+            
+            if moveDirection2 == "UP":
+                moveDirectioncnt2 += 1
+                if (self.head.x, self.head.y + (moveDirectioncnt2 * BLOCK_SIZE)) in self.snake[1:] or self.head.y + (moveDirectioncnt2 * BLOCK_SIZE) == self.h:
+                    break
+            
+            if moveDirection2 == "DOWN":
+                moveDirectioncnt2 += 1
+                if (self.head.x, self.head.y - (moveDirectioncnt2 * BLOCK_SIZE)) in self.snake[1:] or self.head.y - (moveDirectioncnt2 * BLOCK_SIZE) == (-1 *  BLOCK_SIZE):
+                    break
+        if moveDirectioncnt2 > moveDirectioncnt:
+            return moveDirection2
+        else:
+            return moveDirection
+
+
     def Get_Best_Move(self):
         directions = {"RIGHT" : 0, "LEFT" : 0, "UP" : 0, "DOWN" : 0}    #A dictionary containing key value pairs of the direction and their given weights. The Weights will be updated through the heuristic function.
-        moveScore = 0   # A variable to keep track of the highest weight
+        moveScore = -1000   # A variable to keep track of the highest weight
         moveDirection = ""  # A variable to keep track of the best move according to the highest weight
         for key in directions:  #loop through the keys in the dictionarry
-            score = self.Heuristic(key) #get the score of a given direction based on the key
-            directions[key] = score     # update the weight of a direction in the dictionary based on the score from the heuristic function
+            score = self.Heuristic1(key) #Heuristic 1 just tries not to hit itself and move towards the food.
+            #score = self.Heuristic2(key) # Heuristic2 tries to not box itself in.
+            directions[key] = float(score)     # update the weight of a direction in the dictionary based on the score from the heuristic function
             #print(key + " weight = " + str(directions[key]))
         
         for key in directions: # loop throught the keys in the dictionary again 
             if directions[key] > moveScore:     # decide if the current direction has a larger weight than the current highest recorded weight
+                #print(str(directions[key]) + " > movescore = (" + str(moveScore) + ")")
                 moveScore = directions[key]     # if a direction has a larger weight, than update the new score
                 moveDirection = key             # update the direction to the best option found so far
                 #print("Move Directioin = " + moveDirection)
+            if directions[key] == moveScore:
+                moveDirection = self.TieBreaker(key, moveDirection)
 
         # Find what direction is the best option so far and update self.direction accordingly
         if moveDirection == "RIGHT":
@@ -349,8 +476,8 @@ if __name__ == '__main__':
     
     while True:
         #game_over, score = game.play_step()
-        game_over, score = game.play_HardCode()
-        #game_over, score = game.Play_Heuristic()
+        #game_over, score = game.play_HardCode()
+        game_over, score = game.Play_Heuristic()
         if game_over == True:
             break
         
